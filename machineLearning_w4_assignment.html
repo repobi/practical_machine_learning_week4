@@ -413,21 +413,23 @@ training_data &lt;- read.csv(url(train_url))</code></pre>
 </div>
 <div id="data-cleaning" class="section level1">
 <h1>data cleaning</h1>
-<p>Columns, which had many NA values (mean &gt; 0.90), were removed. Moreover, colums with near zero-variation were removed.</p>
-<pre class="r"><code># data cleaning; remove NAs
-NA_col &lt;- sapply(training_data, function(x) mean(is.na(x))) &gt; 0.90
-training_data_01 &lt;- training_data[,NA_col == FALSE]
+<p>Columns, which had index and many NA values (mean &gt; 0.90), were removed. Moreover, colums with near zero-variation were removed.</p>
+<pre class="r"><code># data cleaning; remove index column
+training_data_01 &lt;- training_data[,-c(1)]
+# data cleaning; remove NAs
+NA_col &lt;- sapply(training_data_01, function(x) mean(is.na(x))) &gt; 0.90
+training_data_02 &lt;- training_data_01[,NA_col == FALSE]
 # data cleanining; non zero var
-near_zero_var &lt;- nearZeroVar(training_data_01)
-training_data_02 &lt;- training_data_01[,-near_zero_var]</code></pre>
+near_zero_var &lt;- nearZeroVar(training_data_02)
+training_data_03 &lt;- training_data_02[,-near_zero_var]</code></pre>
 </div>
 <div id="data-partition" class="section level1">
 <h1>data partition</h1>
 <p>60% of cleaned training data was used for building a model, and the remaining data was used for testing the model to evaluate its accuracy.</p>
 <pre class="r"><code>set.seed(191207)
-inTrain &lt;- createDataPartition(training_data_02$classe, p = 0.6, list = FALSE)
-training &lt;- training_data_02[inTrain,]
-testing &lt;- training_data_02[-inTrain,]</code></pre>
+inTrain &lt;- createDataPartition(training_data_03$classe, p = 0.6, list = FALSE)
+training &lt;- training_data_03[inTrain,]
+testing &lt;- training_data_03[-inTrain,]</code></pre>
 </div>
 <div id="random-forest-model" class="section level1">
 <h1>Random Forest model</h1>
@@ -450,12 +452,12 @@ RF_pred_conf &lt;- confusionMatrix(RF_pred, testing$classe)</code></pre>
 </div>
 <div id="summary" class="section level1">
 <h1>summary</h1>
-<p>When mtry = 41, the model showed the most highest accuracy value. In the case of test data, the model showed accuracy value of &gt;0.99. Based on this test result, further exploration of predictive models was not conducted.</p>
+<p>In the case of test data, the model showed accuracy value of &gt;0.99 and its sample error rate is acceptable. Based on this test result, further exploration of predictive models was not conducted.</p>
 <pre class="r"><code>RF_mod</code></pre>
 <pre><code>## Random Forest 
 ## 
 ## 11776 samples
-##    58 predictor
+##    57 predictor
 ##     5 classes: 'A', 'B', 'C', 'D', 'E' 
 ## 
 ## No pre-processing
@@ -464,45 +466,45 @@ RF_pred_conf &lt;- confusionMatrix(RF_pred, testing$classe)</code></pre>
 ## Resampling results across tuning parameters:
 ## 
 ##   mtry  Accuracy   Kappa    
-##    2    0.9944802  0.9930182
-##   41    0.9998301  0.9997851
-##   80    0.9996603  0.9995704
+##    2    0.9886193  0.9856018
+##   40    0.9980470  0.9975296
+##   79    0.9971125  0.9963476
 ## 
 ## Accuracy was used to select the optimal model using the largest value.
-## The final value used for the model was mtry = 41.</code></pre>
+## The final value used for the model was mtry = 40.</code></pre>
 <pre class="r"><code>RF_pred_conf</code></pre>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 2232    1    0    0    0
-##          B    0 1517    0    0    0
-##          C    0    0 1368    0    0
-##          D    0    0    0 1286    0
+##          A 2232    4    0    0    0
+##          B    0 1513    3    0    0
+##          C    0    1 1360    3    0
+##          D    0    0    5 1283    0
 ##          E    0    0    0    0 1442
 ## 
 ## Overall Statistics
-##                                      
-##                Accuracy : 0.9999     
-##                  95% CI : (0.9993, 1)
-##     No Information Rate : 0.2845     
-##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16  
-##                                      
-##                   Kappa : 0.9998     
-##                                      
-##  Mcnemar's Test P-Value : NA         
+##                                           
+##                Accuracy : 0.998           
+##                  95% CI : (0.9967, 0.9988)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.9974          
+##                                           
+##  Mcnemar's Test P-Value : NA              
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            1.0000   0.9993   1.0000   1.0000   1.0000
-## Specificity            0.9998   1.0000   1.0000   1.0000   1.0000
-## Pos Pred Value         0.9996   1.0000   1.0000   1.0000   1.0000
-## Neg Pred Value         1.0000   0.9998   1.0000   1.0000   1.0000
+## Sensitivity            1.0000   0.9967   0.9942   0.9977   1.0000
+## Specificity            0.9993   0.9995   0.9994   0.9992   1.0000
+## Pos Pred Value         0.9982   0.9980   0.9971   0.9961   1.0000
+## Neg Pred Value         1.0000   0.9992   0.9988   0.9995   1.0000
 ## Prevalence             0.2845   0.1935   0.1744   0.1639   0.1838
-## Detection Rate         0.2845   0.1933   0.1744   0.1639   0.1838
-## Detection Prevalence   0.2846   0.1933   0.1744   0.1639   0.1838
-## Balanced Accuracy      0.9999   0.9997   1.0000   1.0000   1.0000</code></pre>
+## Detection Rate         0.2845   0.1928   0.1733   0.1635   0.1838
+## Detection Prevalence   0.2850   0.1932   0.1738   0.1642   0.1838
+## Balanced Accuracy      0.9996   0.9981   0.9968   0.9985   1.0000</code></pre>
 </div>
 
 

@@ -21,23 +21,25 @@ training_data <- read.csv(url(train_url))
 ```
 
 # data cleaning
-Columns, which had many NA values (mean > 0.90), were removed. Moreover, colums with near zero-variation were removed. 
+Columns, which had index and many NA values (mean > 0.90), were removed. Moreover, colums with near zero-variation were removed. 
 ```{r}
+# data cleaning; remove index column
+training_data_01 <- training_data[,-c(1)]
 # data cleaning; remove NAs
-NA_col <- sapply(training_data, function(x) mean(is.na(x))) > 0.90
-training_data_01 <- training_data[,NA_col == FALSE]
+NA_col <- sapply(training_data_01, function(x) mean(is.na(x))) > 0.90
+training_data_02 <- training_data_01[,NA_col == FALSE]
 # data cleanining; non zero var
-near_zero_var <- nearZeroVar(training_data_01)
-training_data_02 <- training_data_01[,-near_zero_var]
+near_zero_var <- nearZeroVar(training_data_02)
+training_data_03 <- training_data_02[,-near_zero_var]
 ```
 
 # data partition
 60% of cleaned training data was used for building a model, and the remaining data was used for testing the model to evaluate its accuracy.
 ```{r}
 set.seed(191207)
-inTrain <- createDataPartition(training_data_02$classe, p = 0.6, list = FALSE)
-training <- training_data_02[inTrain,]
-testing <- training_data_02[-inTrain,]
+inTrain <- createDataPartition(training_data_03$classe, p = 0.6, list = FALSE)
+training <- training_data_03[inTrain,]
+testing <- training_data_03[-inTrain,]
 ```
 
 # Random Forest model
@@ -61,7 +63,7 @@ RF_pred_conf <- confusionMatrix(RF_pred, testing$classe)
 ```
 
 # summary
-When mtry = 41, the model showed the most highest accuracy value. In the case of test data, the model showed accuracy value of >0.99. Based on this test result, further exploration of predictive models was not conducted.
+In the case of test data, the model showed accuracy value of >0.99 and its sample error rate is acceptable. Based on this test result, further exploration of predictive models was not conducted.
 ```{r}
 RF_mod
 RF_pred_conf
